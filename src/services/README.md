@@ -152,7 +152,7 @@ console.log(`Data Path: ${result.dataPath.join(', ')}`);
 ### Low confidence scores
 - **Check**: Search result similarity and lexical scores in logs
 - **Verify**: LLM is returning self-scores in response
-- **Action**: Review [confidence calibration guide](./confidence/README.md#calibration)
+- **Action**: Review [confidence calibration guide](./confidence/README.md#calibration-guidance)
 
 ### Cache not working
 - **Check**: Redis connection in health endpoint

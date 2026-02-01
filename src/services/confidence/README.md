@@ -106,15 +106,15 @@ final_confidence =
 **Step-by-Step Calculation**:
 
 1. **Normalize similarity**: `0.89` (already 0-1) → `0.89`
-2. **Normalize lexical**: `38.5 / 100` → `0.385`
+2. **Normalize lexical**: `38.5 / 100` → `0.39`
 3. **Normalize LLM**: `0.92` (already 0-1) → `0.92`
 
 4. **Apply weights**:
    - Similarity component: `0.45 × 0.89 = 0.4005`
-   - Lexical component: `0.35 × 0.385 = 0.13475`
+   - Lexical component: `0.35 × 0.39 = 0.1365`
    - LLM component: `0.20 × 0.92 = 0.184`
 
-5. **Sum**: `0.4005 + 0.13475 + 0.184 = 0.71925`
+5. **Sum**: `0.4005 + 0.1365 + 0.184 = 0.721`
 
 6. **Round**: `0.72`
 

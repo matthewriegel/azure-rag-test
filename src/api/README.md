@@ -52,6 +52,14 @@ sequenceDiagram
 
 Process a form question and return an AI-generated answer with confidence score.
 
+**Security Note**: This endpoint returns customer data and should be protected with proper authentication/authorization in production. Consider implementing:
+- API key authentication (similar to the ingest endpoint)
+- OAuth 2.0 / JWT-based authentication
+- Network-level restrictions (VPC, private endpoints)
+- Rate limiting per authenticated user/tenant
+
+For internal/trusted network deployments, ensure the endpoint is not publicly accessible.
+
 **Request**:
 ```bash
 curl -X POST http://localhost:3000/api/form-query \

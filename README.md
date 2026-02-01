@@ -26,7 +26,7 @@ graph TB
 ```bash
 # Clone and install
 git clone <repo-url>
-cd azure-rag-test
+cd azure-rag-backend
 npm install
 
 # Configure environment
@@ -159,7 +159,7 @@ See [.env.local.example](.env.local.example) for complete list.
 - **Dev/Test**: ~$160-200/month (Basic tiers)
 - **Production**: ~$500-1000/month (Standard tiers, auto-scaling)
 
-See [Azure Services Cost Table](README.md.backup) for breakdown.
+Use the [Azure Pricing Calculator](https://azure.microsoft.com/en-us/pricing/calculator/) to derive a detailed per-service cost breakdown based on your selected SKUs and regions.
 
 ## License
 
