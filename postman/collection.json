@@ -1,0 +1,86 @@
+{
+  "info": {
+    "name": "Azure RAG Backend",
+    "description": "Production RAG API with form query, ingest, and health endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Form Query",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"formQuestion\": \"What is the customer's email address?\",\n  \"customerId\": \"customer-123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/form-query",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "form-query"]
+        },
+        "description": "Process a form question and return AI-generated answer with confidence score"
+      },
+      "response": []
+    },
+    {
+      "name": "Ingest Customer Data",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}",
+            "description": "API key for authentication"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerId\": \"customer-123\",\n  \"forceReindex\": false\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/ingest",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "ingest"]
+        },
+        "description": "Ingest customer data into search index (requires API key)"
+      },
+      "response": []
+    },
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Check service health and dependency status"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "apiKey",
+      "value": "your-api-key-here",
+      "type": "string"
+    }
+  ]
+}
