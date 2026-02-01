@@ -1,0 +1,213 @@
+openapi: 3.0.3
+info:
+  title: Azure RAG Backend API
+  description: Production RAG backend with Azure OpenAI, AI Search, and Redis
+  version: 1.0.0
+  contact:
+    name: API Support
+servers:
+  - url: http://localhost:3000
+    description: Local development
+  - url: https://your-app.azurecontainerapps.io
+    description: Production
+
+paths:
+  /api/form-query:
+    post:
+      summary: Process form query
+      description: Process a form question and return AI-generated answer with confidence
+      operationId: formQuery
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - formQuestion
+              properties:
+                formQuestion:
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+                  example: "What is the customer's email address?"
+                customerId:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  example: "customer-123"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      answer:
+                        type: string
+                        example: "john.doe@example.com"
+                      dataPath:
+                        type: array
+                        items:
+                          type: string
+                        example: ["contact.email"]
+                      confidence:
+                        type: number
+                        format: float
+                        example: 0.87
+                      sources:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            dataPath:
+                              type: string
+                            score:
+                              type: number
+                        example: [{"dataPath": "contact.email", "score": 0.92}]
+                      cached:
+                        type: boolean
+                        example: false
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limit exceeded
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/ingest:
+    post:
+      summary: Ingest customer data
+      description: Ingest customer data into search index (requires API key)
+      operationId: ingest
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - customerId
+              properties:
+                customerId:
+                  type: string
+                  example: "customer-123"
+                forceReindex:
+                  type: boolean
+                  default: false
+                  example: false
+      responses:
+        '200':
+          description: Ingestion successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      customerId:
+                        type: string
+                      documentsProcessed:
+                        type: integer
+                        example: 45
+                      chunksCreated:
+                        type: integer
+                        example: 120
+                      success:
+                        type: boolean
+                        example: true
+        '401':
+          description: Unauthorized - missing or invalid API key
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /health:
+    get:
+      summary: Health check
+      description: Check service health and dependencies
+      operationId: health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2026-02-01T15:47:00.000Z"
+                  services:
+                    type: object
+                    properties:
+                      redis:
+                        type: string
+                        example: "ok"
+                      search:
+                        type: string
+                        example: "ok"
+        '503':
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "error"
+                  errors:
+                    type: array
+                    items:
+                      type: string
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Validation failed"
+        details:
+          type: object
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for ingest endpoint authentication

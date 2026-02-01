@@ -1,193 +1,113 @@
 # Azure RAG Backend
 
-Production-grade Retrieval-Augmented Generation (RAG) backend built with Node.js, TypeScript, Express, and Azure services.
+Production-grade Retrieval-Augmented Generation (RAG) system using Azure OpenAI, AI Search, Redis, and Blob Storage. Hybrid vector + lexical search with multi-signal confidence scoring. Built with Node.js, TypeScript, Express. Fully tested, type-safe, and Azure-optimized.
 
 ## Architecture
 
+```mermaid
+graph TB
+    A[Client] -->|POST /form-query| B[Express API]
+    B --> C{Redis Cache}
+    C -->|miss| D[RAG Pipeline]
+    D --> E[Azure Blob Storage]
+    D --> F[Azure OpenAI Embeddings]
+    D --> G[Azure AI Search]
+    D --> H[Azure OpenAI Chat]
+    D --> I[Confidence Service]
+    I --> C
+    C -->|hit| J[Response]
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        Client Application                    │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-                         ▼
-              ┌──────────────────────┐
-              │   Express API Server  │
-              │   (Node.js + TS)      │
-              └──────────┬───────────┘
-                         │
-         ┌───────────────┼───────────────┐
-         │               │               │
-         ▼               ▼               ▼
-┌────────────────┐ ┌──────────┐ ┌──────────────┐
-│ Azure OpenAI   │ │  Azure   │ │ Azure Blob   │
-│ - Chat (GPT-4) │ │  AI      │ │   Storage    │
-│ - Embeddings   │ │  Search  │ │ (Customers)  │
-└────────────────┘ └──────────┘ └──────────────┘
-                         │
-                         ▼
-                ┌─────────────────┐
-                │ Azure Redis     │
-                │ (Cache)         │
-                └─────────────────┘
-                         │
-                         ▼
-                ┌─────────────────┐
-                │ App Insights    │
-                │ (Monitoring)    │
-                └─────────────────┘
-```
+*Hybrid RAG pipeline with caching, vector search, and confidence scoring*
 
-## Features
-
-- **Hybrid Vector Search**: Combines BM25 and vector similarity for optimal retrieval
-- **Intelligent Caching**: Redis-based query and customer data caching
-- **Confidence Scoring**: Multi-signal confidence calculation (similarity + lexical + LLM)
-- **PII Redaction**: Built-in PII detection and redaction
-- **Production Ready**: Rate limiting, error handling, logging, monitoring
-- **Azure First**: Native integration with Azure services
-- **Type Safe**: Full TypeScript with strict mode
-- **Scalable**: Designed for production workloads
-
-## Azure Services Used
-
-| Service | Purpose | Cost (est.) |
-|---------|---------|-------------|
-| **Azure OpenAI** | Chat completions & embeddings | ~$50-100/mo |
-| **Azure AI Search** | Vector + hybrid search | ~$75-250/mo |
-| **Azure Cache for Redis** | Query/data caching | ~$15-100/mo |
-| **Azure Blob Storage** | Customer document storage | ~$5-20/mo |
-| **Azure Key Vault** | Secrets management | ~$5/mo |
-| **Application Insights** | Monitoring & logging | ~$10-50/mo |
-
-**Total Monthly Cost**: $160-525 (varies by usage and tier)
-
-## Project Structure
-
-```
-.
-├── src/
-│   ├── config/           # Configuration and env management
-│   │   ├── env.ts
-│   │   └── features.ts
-│   ├── lib/azure/        # Azure client wrappers
-│   │   ├── openaiClient.ts
-│   │   ├── searchClient.ts
-│   │   ├── redisClient.ts
-│   │   └── blobClient.ts
-│   ├── services/         # Business logic
-│   │   ├── ingest/       # Document ingestion
-│   │   ├── retrieval/    # Vector search
-│   │   ├── confidence/   # Confidence calculation
-│   │   └── generation/   # LLM answer generation
-│   ├── api/              # Express API layer
-│   │   ├── app.ts
-│   │   ├── routes.ts
-│   │   ├── formQuery.ts
-│   │   ├── ingest.ts
-│   │   └── health.ts
-│   ├── utils/            # Helpers and utilities
-│   └── index.ts          # Server entry point
-├── infra/                # Azure infrastructure (Bicep)
-│   └── bicep/
-│       ├── main.bicep
-│       └── modules/
-├── docker-compose.yml    # Local development
-├── Dockerfile            # Production container
-└── package.json
-```
-
-## Quick Start
-
-### Prerequisites
-
-- Node.js 20+
-- Docker & Docker Compose
-- Azure subscription
-- Azure CLI (for deployment)
+## Quickstart
 
 ### Local Development
 
-1. **Clone and install dependencies**:
-   ```bash
-   git clone <repository-url>
-   cd azure-rag-backend
-   npm install
-   ```
+```bash
+# Clone and install
+git clone <repo-url>
+cd azure-rag-test
+npm install
 
-2. **Configure environment**:
-   ```bash
-   cp .env.local.example .env.local
-   # Edit .env.local with your Azure credentials
-   ```
+# Configure environment
+cp .env.local.example .env.local
+# Edit .env.local with Azure credentials
+# Set AZURE_MODE=true (default)
 
-3. **Start local services**:
-   ```bash
-   docker-compose up -d
-   ```
+# Start Redis
+docker-compose up -d
 
-4. **Run the API**:
-   ```bash
-   npm run dev
-   ```
+# Run dev server
+npm run dev
+```
 
-5. **Test the API**:
-   ```bash
-   curl http://localhost:3000/health
-   ```
+Server runs on `http://localhost:3000`. Test with `curl http://localhost:3000/health`.
 
-### Environment Variables
-
-See `.env.example` for all configuration options. Key variables:
+### Azure Deployment
 
 ```bash
-# Azure OpenAI
-AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
-AZURE_OPENAI_API_KEY=your-key
-AZURE_OPENAI_CHAT_DEPLOYMENT=gpt-4.1-mini
-AZURE_OPENAI_EMBEDDING_DEPLOYMENT=text-embedding-3-large
+# Deploy infrastructure
+bash scripts/deploy-azure.sh
 
-# Azure AI Search
-AZURE_SEARCH_ENDPOINT=https://your-search.search.windows.net
-AZURE_SEARCH_API_KEY=your-key
-
-# Azure Cache for Redis
-AZURE_REDIS_HOST=your-redis.redis.cache.windows.net
-AZURE_REDIS_PORT=6380
-AZURE_REDIS_PASSWORD=your-password
-
-# Azure Blob Storage
-AZURE_STORAGE_ACCOUNT_NAME=yourstorageaccount
-AZURE_STORAGE_ACCOUNT_KEY=your-key
+# Or manually:
+az group create --name rg-rag-prod --location eastus
+az deployment group create --resource-group rg-rag-prod --template-file infra/bicep/main.bicep
 ```
+
+## Documentation
+
+### 📚 Deep-Dive Guides (Concepts & Math)
+
+Where to find detailed AI/RAG/LLM explanations:
+
+- **[RAG Service](src/services/README.md)** - Pipeline flow, sequence diagrams, top-K explanation
+- **[Confidence Scoring](src/services/confidence/README.md)** - Formula, calibration, concrete math examples
+- **[Azure Integrations](src/lib/azure/README.md)** - OpenAI, AI Search, Redis, Blob clients
+- **[Vector Store](src/lib/azure/README.md#lexical-score-explained)** - Lexical scores, BM25, hybrid search
+
+### 🗂 Module Documentation
+
+- **[API Layer](src/api/README.md)** - Endpoints, middleware, validation
+- **[Services](src/services/README.md)** - RAG orchestration
+  - [Ingest](src/services/ingest/README.md) - Data ingestion pipeline
+  - [Retrieval](src/services/retrieval/README.md) - Hybrid search
+  - [Generation](src/services/generation/README.md) - LLM generation
+  - [Confidence](src/services/confidence/README.md) - Scoring system
+- **[Configuration](src/config/README.md)** - Env vars, feature flags
+- **[Utilities](src/utils/README.md)** - Logger, tokenizer, helpers
+- **[Tests](src/tests/README.md)** - Testing approach
+- **[Infrastructure](infra/README.md)** - Bicep IaC templates
+- **[Scripts](scripts/README.md)** - Automation tools
+
+### 📖 Additional Resources
+
+- **[Architecture Decision Records](doc/adr/)** - Design decisions
+  - [001: Azure AI Search](doc/adr/001-azure-search.md)
+  - [002: Redis Caching](doc/adr/002-redis-caching.md)
+  - [003: Confidence Formula](doc/adr/003-confidence-formula.md)
+- **[OpenAPI Spec](openapi.yaml)** - API schema
+- **[Postman Collection](postman/)** - API testing collection
 
 ## API Endpoints
 
 ### POST /api/form-query
 
-Process a form question and return an answer with confidence score.
-
-**Request**:
-```json
-{
-  "formQuestion": "What is the customer's email address?",
-  "customerId": "customer-123"
-}
+**Request:**
+```bash
+curl -X POST http://localhost:3000/api/form-query \
+  -H "Content-Type: application/json" \
+  -d '{"formQuestion": "What is the customer email?", "customerId": "cust-123"}'
 ```
 
-**Response**:
+**Response:**
 ```json
 {
   "success": true,
   "data": {
     "answer": "john.doe@example.com",
     "dataPath": ["contact.email"],
-    "confidence": 0.92,
-    "sources": [
-      {
-        "dataPath": "contact.email",
-        "score": 0.95
-      }
-    ],
+    "confidence": 0.87,
+    "sources": [{"dataPath": "contact.email", "score": 0.92}],
     "cached": false
   }
 }
@@ -195,242 +115,57 @@ Process a form question and return an answer with confidence score.
 
 ### POST /api/ingest
 
-Ingest customer data into the search index (requires API key).
-
-**Headers**:
-```
-X-API-Key: your-api-key
-```
-
-**Request**:
-```json
-{
-  "customerId": "customer-123",
-  "forceReindex": false
-}
-```
-
-**Response**:
-```json
-{
-  "success": true,
-  "data": {
-    "customerId": "customer-123",
-    "documentsProcessed": 45,
-    "chunksCreated": 120,
-    "success": true
-  }
-}
-```
+Requires `X-API-Key` header. See [API docs](src/api/README.md) for details.
 
 ### GET /health
 
-Health check endpoint.
-
-**Response**:
-```json
-{
-  "status": "ok",
-  "timestamp": "2024-01-15T10:30:00.000Z",
-  "services": {
-    "redis": "ok",
-    "search": "ok"
-  }
-}
-```
-
-## RAG Pipeline Flow
-
-1. **Receive Query**: `POST /api/form-query`
-2. **Normalize & Cache Check**: Hash query → Redis lookup
-3. **Cache Miss Processing**:
-   - Fetch customer data from Blob Storage
-   - Chunk data (500 tokens, 100 overlap)
-   - Generate embeddings
-   - Index in Azure AI Search
-4. **Hybrid Search**: Vector + BM25 (top K=5)
-5. **Generate Answer**: Call GPT-4 with context
-6. **Calculate Confidence**:
-   - `final = 0.45 * sim_score + 0.35 * lexical_score + 0.20 * llm_score`
-7. **Cache & Return**: Store in Redis, return response
-
-## Confidence Calculation
-
-The system uses a weighted multi-signal approach:
-
-- **Similarity Score (45%)**: Average cosine similarity of top-3 search results
-- **Lexical Score (35%)**: BM25 relevance score (normalized)
-- **LLM Score (20%)**: Model's self-assessed confidence
-
-```typescript
-finalConfidence = 
-  0.45 * avgSimilarityScore +
-  0.35 * avgLexicalScore +
-  0.20 * llmSelfScore
-```
-
-## Deployment to Azure
-
-### 1. Deploy Infrastructure
-
 ```bash
-# Create resource group
-az group create --name rg-rag-backend --location eastus
-
-# Deploy Bicep template
-az deployment group create \
-  --resource-group rg-rag-backend \
-  --template-file infra/bicep/main.bicep \
-  --parameters environment=prod
-
-# Get outputs
-az deployment group show \
-  --resource-group rg-rag-backend \
-  --name main \
-  --query properties.outputs
+curl http://localhost:3000/health
 ```
-
-### 2. Build and Push Container
-
-```bash
-# Build Docker image
-docker build -t ragbackend:latest .
-
-# Tag for Azure Container Registry
-docker tag ragbackend:latest <your-acr>.azurecr.io/ragbackend:latest
-
-# Push to ACR
-az acr login --name <your-acr>
-docker push <your-acr>.azurecr.io/ragbackend:latest
-```
-
-### 3. Deploy to Container Apps
-
-Update the Container App with your image or use the Azure Portal.
 
 ## Development
 
-### Build
-
 ```bash
-npm run build
+npm run dev          # Start dev server
+npm run build        # Build TypeScript
+npm test             # Run tests
+npm run lint         # Lint code
+npm run format       # Format code
 ```
 
-### Type Check
+## Environment Variables
+
+Key variables in `.env.local`:
 
 ```bash
-npm run typecheck
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+AZURE_OPENAI_API_KEY=your-key
+AZURE_OPENAI_CHAT_DEPLOYMENT=gpt-4-turbo
+AZURE_OPENAI_EMBEDDING_DEPLOYMENT=text-embedding-3-large
+
+AZURE_SEARCH_ENDPOINT=https://your-search.search.windows.net
+AZURE_SEARCH_API_KEY=your-key
+
+AZURE_REDIS_HOST=your-redis.redis.cache.windows.net
+AZURE_REDIS_PASSWORD=your-password
+
+AZURE_MODE=true  # Use Azure services (default)
 ```
 
-### Lint
+See [.env.local.example](.env.local.example) for complete list.
 
-```bash
-npm run lint
-npm run lint:fix
-```
+## Cost Estimate
 
-### Format
+- **Dev/Test**: ~$160-200/month (Basic tiers)
+- **Production**: ~$500-1000/month (Standard tiers, auto-scaling)
 
-```bash
-npm run format
-npm run format:check
-```
-
-### Test
-
-```bash
-npm test
-npm run test:watch
-npm run test:coverage
-```
-
-## Scaling Strategies
-
-### Horizontal Scaling
-- **Container Apps**: Auto-scale based on HTTP requests (1-10 replicas)
-- **Redis**: Use cluster mode for production
-- **AI Search**: Increase replicas and partitions
-
-### Vertical Scaling
-- **OpenAI**: Increase TPM quotas
-- **Redis**: Upgrade to Premium tier
-- **Search**: Move to Standard/Premium tiers
-
-### Caching Optimization
-- Query cache TTL: 1 hour (configurable)
-- Customer data cache: 24 hours
-- Implement cache warming for frequent queries
-
-### Cost Optimization
-- Use Basic tiers for dev/staging
-- Enable auto-pause for non-production
-- Monitor and optimize token usage
-- Implement request batching
-
-## Security
-
-- **No secrets in code**: All credentials via environment variables
-- **PII redaction**: Automatic detection and redaction
-- **Rate limiting**: 100 requests/minute per IP
-- **TLS encryption**: All Azure services use TLS 1.2+
-- **API key authentication**: Required for /ingest endpoint
-- **RBAC**: Use Azure managed identities in production
-
-## Monitoring
-
-### Application Insights
-- Request tracking and performance
-- Dependency tracking (OpenAI, Redis, Search)
-- Custom metrics and events
-- Distributed tracing
-
-### Key Metrics
-- Request latency (p50, p95, p99)
-- Error rate
-- Cache hit ratio
-- OpenAI token usage
-- Search query performance
-
-### Alerts
-- High error rate (>5%)
-- High latency (>2s p95)
-- Service health degradation
-- Cost anomalies
-
-## Troubleshooting
-
-### Redis Connection Issues
-```bash
-# Test Redis connection
-redis-cli -h <host> -p 6380 --tls -a <password> ping
-```
-
-### Search Index Issues
-```bash
-# Verify index exists
-az search index show --service-name <name> --name rag-documents
-```
-
-### OpenAI Rate Limits
-- Check TPM quotas in Azure Portal
-- Implement exponential backoff
-- Consider request batching
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make changes with tests
-4. Run linting and tests
-5. Submit a pull request
+See [Azure Services Cost Table](README.md.backup) for breakdown.
 
 ## License
 
 MIT
 
-## Support
+---
 
-For issues and questions:
-- Create an issue in the repository
-- Check Azure service health status
-- Review Application Insights logs
+**Last updated**: 2026-02-01T15:50:00Z  
+**Generated by**: Copilot Workspace action prompt
