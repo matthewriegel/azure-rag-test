@@ -6,56 +6,12 @@ The RAG (Retrieval-Augmented Generation) service orchestrates the complete pipel
 
 ## Architecture
 
-```mermaid
-graph TB
-    A[Client] -->|POST /form-query| B[formQueryService]
-    B --> C{Cache Check}
-    C -->|Hit| D[Return Cached]
-    C -->|Miss| E[Ingest Data if Needed]
-    E --> F[Hybrid Search]
-    F --> G[Generate Answer]
-    G --> H[Calculate Confidence]
-    H --> I[Cache Result]
-    I --> J[Return Response]
-    
-    F --> K[Azure AI Search]
-    G --> L[Azure OpenAI]
-    C --> M[Redis Cache]
-    I --> M
-```
+![Diagram](../../docs/diagrams/src-services-README-1.svg)
 *Architecture diagram showing the RAG pipeline flow from query to response*
 
 ## Query Processing Flow
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant R as formQueryService
-    participant Cache as Redis
-    participant I as Ingest
-    participant S as Search
-    participant G as Generation
-    participant Conf as Confidence
-
-    C->>R: POST /form-query
-    R->>R: Normalize query
-    R->>Cache: Check cache
-    alt Cache Hit
-        Cache-->>R: Return cached result
-        R-->>C: Return response
-    else Cache Miss
-        R->>I: Ensure data indexed
-        I-->>R: Data ready
-        R->>S: Hybrid search (top-K=5)
-        S-->>R: Search results
-        R->>G: Generate answer with context
-        G-->>R: Answer + LLM score
-        R->>Conf: Calculate confidence
-        Conf-->>R: Final confidence
-        R->>Cache: Store result (TTL: 1h)
-        R-->>C: Return response
-    end
-```
+![Diagram](../../docs/diagrams/src-services-README-2.svg)
 *Sequence diagram for form query processing showing cache flow and pipeline steps*
 
 ## POST /form-query Flow

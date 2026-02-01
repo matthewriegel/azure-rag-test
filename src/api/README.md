@@ -4,46 +4,12 @@ Express-based REST API layer providing endpoints for form queries, data ingestio
 
 ## Architecture
 
-```mermaid
-graph TB
-    A[Client Request] --> B[Express Router]
-    B --> C[Middleware Chain]
-    C --> D[Helmet Security]
-    C --> E[CORS]
-    C --> F[Rate Limiting]
-    C --> G[Request Validation]
-    G --> H[Route Handler]
-    H --> I[Service Layer]
-    I --> J[Response]
-    
-    K[Error Handler] -.-> J
-    H -.error.-> K
-```
+![Diagram](../../docs/diagrams/src-api-README-1.svg)
 *API layer architecture showing middleware pipeline*
 
 ## Request Flow
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant M as Middleware
-    participant R as Route Handler
-    participant S as Service
-    
-    C->>M: HTTP Request
-    M->>M: Security checks
-    M->>M: Rate limit check
-    M->>M: Validate schema
-    M->>R: Forward request
-    R->>S: Call service layer
-    S-->>R: Return result
-    R->>M: JSON response
-    M-->>C: HTTP Response
-    
-    Note over M: Error Handler
-    R-.error.->M: Exception
-    M-->>C: Error response
-```
+![Diagram](../../docs/diagrams/src-api-README-2.svg)
 *Sequence diagram for request processing*
 
 ## Endpoints

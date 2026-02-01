@@ -4,44 +4,12 @@ Multi-signal confidence scoring system that combines vector similarity, lexical 
 
 ## Architecture
 
-```mermaid
-graph LR
-    A[Search Results] -->|Similarity| B[Normalize 0-1]
-    C[BM25 Scores] -->|Lexical| D[Normalize 0-100→0-1]
-    E[LLM Response] -->|Self-Score| F[Normalize 0-1]
-    
-    B --> G[Weight: 0.45]
-    D --> H[Weight: 0.35]
-    F --> I[Weight: 0.20]
-    
-    G --> J[Final Confidence]
-    H --> J
-    I --> J
-    
-    J --> K{>= Threshold?}
-    K -->|Yes| L[High Confidence]
-    K -->|No| M[Low Confidence]
-```
+![Diagram](../../../docs/diagrams/src-services-confidence-README-1.svg)
 *Confidence calculation architecture showing weighted signal combination*
 
 ## Confidence Calculation Flow
 
-```mermaid
-sequenceDiagram
-    participant R as RAG Service
-    participant C as confidenceService
-    participant L as Logger
-
-    R->>C: calculateConfidence(inputs)
-    C->>C: Normalize similarity (0-1)
-    C->>C: Normalize lexical (0-100 → 0-1)
-    C->>C: Normalize LLM score (0-1)
-    C->>C: Apply weights: 0.45, 0.35, 0.20
-    C->>C: Sum weighted scores
-    C->>C: Round to 2 decimals
-    C->>L: Log confidence components
-    C-->>R: Return ConfidenceResult
-```
+![Diagram](../../../docs/diagrams/src-services-confidence-README-2.svg)
 *Sequence diagram showing confidence calculation steps*
 
 ## Signal Definitions

@@ -4,56 +4,12 @@ Wrapper clients for all Azure services used in the RAG backend: Azure OpenAI (em
 
 ## Architecture
 
-```mermaid
-graph TB
-    subgraph "Azure Services"
-        A[Azure OpenAI]
-        B[Azure AI Search]
-        C[Redis Cache]
-        D[Blob Storage]
-    end
-    
-    E[RAG Backend] --> A
-    E --> B
-    E --> C
-    E --> D
-    
-    A --> F[Embeddings API]
-    A --> G[Chat API]
-    B --> H[Vector Search]
-    B --> I[BM25 Lexical]
-    C --> J[Query Cache]
-    C --> K[Data Cache]
-    D --> L[Customer Docs]
-```
+![Diagram](../../../docs/diagrams/src-lib-azure-README-1.svg)
 *Azure service integration architecture*
 
 ## Service Integration Flow
 
-```mermaid
-sequenceDiagram
-    participant R as RAG Service
-    participant O as OpenAI Client
-    participant S as Search Client
-    participant C as Redis Client
-    participant B as Blob Client
-
-    R->>O: getEmbeddings(query)
-    O-->>R: embedding vector
-    
-    R->>S: hybridSearch(vector, topK)
-    S-->>R: ranked results
-    
-    R->>O: getChatCompletion(messages)
-    O-->>R: LLM response
-    
-    R->>C: set(key, result, ttl)
-    C-->>R: cached
-    
-    Note over B: Ingest flow
-    R->>B: getBlob(customerId)
-    B-->>R: customer data JSON
-```
+![Diagram](../../../docs/diagrams/src-lib-azure-README-2.svg)
 *Sequence showing Azure service orchestration in RAG pipeline*
 
 ## Azure OpenAI Client

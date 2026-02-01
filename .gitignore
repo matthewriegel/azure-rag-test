@@ -50,3 +50,6 @@ dump.rdb
 
 # Application Insights
 ApplicationInsights.config
+
+# Mermaid source files (SVGs are generated and committed)
+docs/diagrams/*.mmd

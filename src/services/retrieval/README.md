@@ -4,37 +4,11 @@ Hybrid search service combining vector similarity and BM25 lexical scoring to re
 
 ## Architecture
 
-```mermaid
-graph TB
-    A[Query Text] --> B[Generate Embedding]
-    B --> C[OpenAI Embeddings API]
-    C --> D[Query Vector]
-    D --> E[Hybrid Search]
-    F[Customer Filter] --> E
-    E --> G[Azure AI Search]
-    G --> H[Top-K Results]
-    H --> I[Calculate Avg Scores]
-    I --> J[Return RetrievalResult]
-```
+![Diagram](../../../docs/diagrams/src-services-retrieval-README-1.svg)
 
 ## Retrieval Flow
 
-```mermaid
-sequenceDiagram
-    participant S as Service
-    participant R as Retrieval
-    participant O as OpenAI
-    participant A as AI Search
-
-    S->>R: retrieveDocuments(query, customerId)
-    R->>O: getEmbeddings(query)
-    O-->>R: query vector
-    R->>A: hybridSearch(vector, filter, topK)
-    A-->>R: ranked results
-    R->>R: Calculate avgSimilarity (top-3)
-    R->>R: Calculate avgLexical (all)
-    R-->>S: {results, avgSimilarityScore, avgLexicalScore}
-```
+![Diagram](../../../docs/diagrams/src-services-retrieval-README-2.svg)
 
 ## Hybrid Search
 

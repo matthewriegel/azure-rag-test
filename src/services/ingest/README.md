@@ -4,49 +4,12 @@ Document ingestion pipeline that fetches customer data from Azure Blob Storage, 
 
 ## Architecture
 
-```mermaid
-graph LR
-    A[Blob Storage] --> B[Fetch JSON]
-    B --> C[Flatten Data]
-    C --> D[Chunk Text]
-    D --> E[Generate Embeddings]
-    E --> F[Index Documents]
-    F --> G[Azure AI Search]
-    
-    H[Redis Cache] --> B
-    B --> H
-```
+![Diagram](../../../docs/diagrams/src-services-ingest-README-1.svg)
 *Ingest pipeline flow from blob storage to search index*
 
 ## Ingestion Flow
 
-```mermaid
-sequenceDiagram
-    participant A as API
-    participant I as Ingest Service
-    participant B as Blob Storage
-    participant O as OpenAI
-    participant S as Search
-    participant C as Cache
-
-    A->>I: ingestCustomerData(customerId)
-    I->>C: Check data cache
-    alt Cached
-        C-->>I: Return cached data
-    else Not cached
-        I->>B: getCustomerData(customerId)
-        B-->>I: JSON data
-        I->>C: Cache data (24h TTL)
-    end
-    
-    I->>I: Flatten nested JSON
-    I->>I: Chunk text (500 tokens, 100 overlap)
-    I->>O: Generate embeddings (batch)
-    O-->>I: Embeddings array
-    I->>S: Index documents
-    S-->>I: Success
-    I-->>A: Ingestion complete
-```
+![Diagram](../../../docs/diagrams/src-services-ingest-README-2.svg)
 *Sequence diagram showing data ingestion pipeline*
 
 ## Processing Steps
