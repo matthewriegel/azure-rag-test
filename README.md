@@ -4,19 +4,7 @@ Production-grade Retrieval-Augmented Generation (RAG) system using Azure OpenAI,
 
 ## Architecture
 
-```mermaid
-graph TB
-    A[Client] -->|POST /form-query| B[Express API]
-    B --> C{Redis Cache}
-    C -->|miss| D[RAG Pipeline]
-    D --> E[Azure Blob Storage]
-    D --> F[Azure OpenAI Embeddings]
-    D --> G[Azure AI Search]
-    D --> H[Azure OpenAI Chat]
-    D --> I[Confidence Service]
-    I --> C
-    C -->|hit| J[Response]
-```
+![Diagram](docs/diagrams/README-1.svg)
 *Hybrid RAG pipeline with caching, vector search, and confidence scoring*
 
 ## Quickstart

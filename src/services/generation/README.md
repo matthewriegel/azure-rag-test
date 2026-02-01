@@ -4,31 +4,11 @@ LLM-based answer generation service that uses Azure OpenAI to produce structured
 
 ## Architecture
 
-```mermaid
-graph LR
-    A[Search Results] --> B[Build Context]
-    B --> C[Create Prompt]
-    C --> D[Azure OpenAI]
-    D --> E[Parse JSON Response]
-    E --> F[Return Answer Object]
-```
+![Diagram](../../../docs/diagrams/src-services-generation-README-1.svg)
 
 ## Generation Flow
 
-```mermaid
-sequenceDiagram
-    participant R as RAG Service
-    participant G as Generation Service
-    participant O as OpenAI
-
-    R->>G: generateAnswer(query, results)
-    G->>G: Build context from search results
-    G->>G: Create structured prompt
-    G->>O: getChatCompletion(messages)
-    O-->>G: JSON response
-    G->>G: Parse & validate
-    G-->>R: {answer, dataPath, confidence, explanation}
-```
+![Diagram](../../../docs/diagrams/src-services-generation-README-2.svg)
 
 ## Prompt Structure
 
