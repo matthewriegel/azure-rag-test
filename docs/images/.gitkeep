@@ -1,0 +1,9 @@
+# Architecture Diagram
+
+To generate the architecture diagram:
+
+```bash
+node scripts/export-mermaid.js
+```
+
+This will create `architecture.png` from the Mermaid diagram in README.md.

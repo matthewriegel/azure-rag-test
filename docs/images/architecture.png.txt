@@ -1,0 +1,7 @@
+Placeholder for architecture diagram.
+
+To generate the actual PNG:
+1. Install mermaid-cli: npm install -g @mermaid-js/mermaid-cli
+2. Run: node scripts/export-mermaid.js
+
+This will export the Mermaid diagram from README.md to docs/images/architecture.png
