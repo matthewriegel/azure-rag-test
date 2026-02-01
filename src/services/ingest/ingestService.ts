@@ -79,7 +79,7 @@ export async function ingestCustomerData(options: IngestOptions): Promise<Ingest
     // Fetch from blob storage if not cached
     if (!customerData) {
       customerData = await blobClient.getCustomerData(customerId);
-      
+
       // Cache customer data
       if (featureFlags.customerDataCache) {
         await redisClient.set(cacheKey, customerData, 86400); // 24 hours
@@ -118,7 +118,7 @@ export async function ingestCustomerData(options: IngestOptions): Promise<Ingest
 
       // Chunk the content
       const chunks = chunkText(value, config.rag.chunkSize, config.rag.chunkOverlap);
-      
+
       // Generate embeddings for all chunks
       const embeddings = await openaiClient.getEmbeddings(chunks);
 

@@ -26,9 +26,7 @@ export interface FormQueryResponse {
 /**
  * Main RAG pipeline for form query processing
  */
-export async function processFormQuery(
-  request: FormQueryRequest
-): Promise<FormQueryResponse> {
+export async function processFormQuery(request: FormQueryRequest): Promise<FormQueryResponse> {
   const { formQuestion, customerId } = request;
 
   try {

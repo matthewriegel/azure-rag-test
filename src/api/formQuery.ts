@@ -27,9 +27,7 @@ router.post(
     const { formQuestion, customerId } = req.body;
 
     // Apply PII redaction if enabled
-    const sanitizedQuestion = featureFlags.piiRedaction
-      ? redactPII(formQuestion)
-      : formQuestion;
+    const sanitizedQuestion = featureFlags.piiRedaction ? redactPII(formQuestion) : formQuestion;
 
     logger.info('Received form query', { customerId, questionLength: formQuestion.length });
 

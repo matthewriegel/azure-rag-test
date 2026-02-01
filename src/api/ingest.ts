@@ -7,7 +7,7 @@ import logger from '../utils/logger.js';
 const router = Router();
 
 // Simple API key authentication middleware
-function authenticateApiKey(req: Request, res: Response, next: Function): void {
+function authenticateApiKey(req: Request, res: Response, next: () => void): void {
   const apiKey = req.headers['x-api-key'];
   const validApiKey = process.env.INGEST_API_KEY || 'dev-api-key';
 

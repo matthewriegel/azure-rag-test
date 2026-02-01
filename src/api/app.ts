@@ -60,7 +60,7 @@ export function errorHandler(
   err: ApiError,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ): void {
   logger.error('API Error', {
     error: err.message,

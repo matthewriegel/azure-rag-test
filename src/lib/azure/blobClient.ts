@@ -65,7 +65,7 @@ class BlobStorageService {
     try {
       const blockBlobClient = this.containerClient.getBlockBlobClient(blobName);
       const downloadResponse = await blockBlobClient.download(0);
-      
+
       if (!downloadResponse.readableStreamBody) {
         throw new Error('No stream body in download response');
       }

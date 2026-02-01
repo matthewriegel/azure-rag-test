@@ -18,9 +18,7 @@ export interface RetrievalResult {
 /**
  * Retrieve relevant documents using hybrid search
  */
-export async function retrieveDocuments(
-  options: RetrievalOptions
-): Promise<RetrievalResult> {
+export async function retrieveDocuments(options: RetrievalOptions): Promise<RetrievalResult> {
   const { query, customerId, topK = config.rag.searchTopK } = options;
 
   try {
@@ -76,7 +74,7 @@ export async function retrieveDocuments(
  */
 export function extractDataPaths(results: SearchResult[]): string[] {
   const uniquePaths = new Set<string>();
-  
+
   for (const result of results) {
     if (result.dataPath) {
       uniquePaths.add(result.dataPath);

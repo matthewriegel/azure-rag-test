@@ -1,9 +1,4 @@
-import {
-  SearchClient,
-  SearchIndexClient,
-  AzureKeyCredential,
-  SearchDocument,
-} from '@azure/search-documents';
+import { SearchClient, SearchIndexClient, AzureKeyCredential } from '@azure/search-documents';
 import config from '../../config/env.js';
 import logger from '../../utils/logger.js';
 
@@ -23,22 +18,18 @@ export interface VectorSearchOptions {
 }
 
 class AzureSearchService {
-  private searchClient: SearchClient<SearchDocument>;
+  private searchClient: SearchClient<Record<string, unknown>>;
   private indexClient: SearchIndexClient;
   private indexName: string;
 
   constructor() {
     const credential = new AzureKeyCredential(config.azureSearch.apiKey);
     this.indexName = config.azureSearch.indexName;
-    
-    this.searchClient = new SearchClient(
-      config.azureSearch.endpoint,
-      this.indexName,
-      credential
-    );
-    
+
+    this.searchClient = new SearchClient(config.azureSearch.endpoint, this.indexName, credential);
+
     this.indexClient = new SearchIndexClient(config.azureSearch.endpoint, credential);
-    
+
     logger.info('Azure AI Search client initialized');
   }
 
@@ -48,7 +39,7 @@ class AzureSearchService {
   async ensureIndex(): Promise<void> {
     try {
       const indexExists = await this.indexExists();
-      
+
       if (!indexExists) {
         await this.createIndex();
         logger.info(`Created search index: ${this.indexName}`);
@@ -80,37 +71,37 @@ class AzureSearchService {
       fields: [
         {
           name: 'id',
-          type: 'Edm.String',
+          type: 'Edm.String' as const,
           key: true,
           filterable: true,
         },
         {
           name: 'content',
-          type: 'Edm.String',
+          type: 'Edm.String' as const,
           searchable: true,
           analyzer: 'en.microsoft',
         },
         {
           name: 'contentVector',
-          type: 'Collection(Edm.Single)',
+          type: 'Collection(Edm.Single)' as const,
           searchable: true,
           vectorSearchDimensions: 3072, // text-embedding-3-large
           vectorSearchProfileName: 'default-vector-profile',
         },
         {
           name: 'dataPath',
-          type: 'Edm.String',
+          type: 'Edm.String' as const,
           searchable: true,
           filterable: true,
         },
         {
           name: 'customerId',
-          type: 'Edm.String',
+          type: 'Edm.String' as const,
           filterable: true,
         },
         {
           name: 'chunkId',
-          type: 'Edm.String',
+          type: 'Edm.String' as const,
           filterable: true,
         },
       ],
@@ -130,7 +121,7 @@ class AzureSearchService {
       },
     };
 
-    await this.indexClient.createIndex(indexDefinition);
+    await this.indexClient.createIndex(indexDefinition as never);
   }
 
   /**
@@ -214,9 +205,7 @@ class AzureSearchService {
       }
 
       if (documentIds.length > 0) {
-        await this.searchClient.deleteDocuments(
-          documentIds.map((id) => ({ id }))
-        );
+        await this.searchClient.deleteDocuments(documentIds.map((id) => ({ id })));
         logger.info(`Deleted ${documentIds.length} documents for customer ${customerId}`);
       }
     } catch (error) {

@@ -25,7 +25,7 @@ export interface ConfidenceResult {
 const CONFIDENCE_WEIGHTS = {
   similarity: 0.45,
   lexical: 0.35,
-  llm: 0.20,
+  llm: 0.2,
 };
 
 /**

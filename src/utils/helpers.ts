@@ -33,13 +33,13 @@ export function createCacheKey(query: string, customerId?: string): string {
 export function redactPII(text: string): string {
   // Email addresses
   let redacted = text.replace(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g, '[EMAIL]');
-  
+
   // Phone numbers (simple patterns)
   redacted = redacted.replace(/\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/g, '[PHONE]');
-  
+
   // SSN pattern
   redacted = redacted.replace(/\b\d{3}-\d{2}-\d{4}\b/g, '[SSN]');
-  
+
   return redacted;
 }
 

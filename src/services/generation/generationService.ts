@@ -45,9 +45,7 @@ The confidence should be a number between 0 and 1 indicating how confident you a
 /**
  * Generate answer using Azure OpenAI
  */
-export async function generateAnswer(
-  options: GenerationOptions
-): Promise<GenerationResult> {
+export async function generateAnswer(options: GenerationOptions): Promise<GenerationResult> {
   const { question, context } = options;
 
   try {

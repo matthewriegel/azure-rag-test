@@ -12,25 +12,21 @@ export function countTokens(text: string): number {
 /**
  * Split text into chunks with overlap
  */
-export function chunkText(
-  text: string,
-  chunkSize: number = 500,
-  overlap: number = 100
-): string[] {
+export function chunkText(text: string, chunkSize: number = 500, overlap: number = 100): string[] {
   const tokens = encoder.encode(text);
   const chunks: string[] = [];
-  
+
   let start = 0;
   while (start < tokens.length) {
     const end = Math.min(start + chunkSize, tokens.length);
     const chunkTokens = tokens.slice(start, end);
-    const chunkText = encoder.decode(chunkTokens);
-    chunks.push(chunkText);
-    
+    const decoded = new TextDecoder().decode(encoder.decode(chunkTokens));
+    chunks.push(decoded);
+
     if (end === tokens.length) break;
     start += chunkSize - overlap;
   }
-  
+
   return chunks;
 }
 
@@ -42,7 +38,8 @@ export function truncateToTokens(text: string, maxTokens: number): string {
   if (tokens.length <= maxTokens) {
     return text;
   }
-  return encoder.decode(tokens.slice(0, maxTokens));
+  const truncated = encoder.decode(tokens.slice(0, maxTokens));
+  return new TextDecoder().decode(truncated);
 }
 
 /**

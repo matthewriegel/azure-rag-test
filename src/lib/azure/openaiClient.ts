@@ -24,7 +24,7 @@ class AzureOpenAIService {
     try {
       const inputs = Array.isArray(text) ? text : [text];
       const response = await this.client.getEmbeddings(this.embeddingDeployment, inputs);
-      
+
       return response.data.map((item) => item.embedding);
     } catch (error) {
       logger.error('Error generating embeddings', { error });
@@ -45,7 +45,7 @@ class AzureOpenAIService {
   }> {
     try {
       const response = await this.client.getChatCompletions(this.chatDeployment, messages);
-      
+
       const choice = response.choices[0];
       if (!choice || !choice.message) {
         throw new Error('No response from OpenAI');
@@ -79,10 +79,7 @@ class AzureOpenAIService {
         ? `You must respond with valid JSON matching this schema: ${JSON.stringify(schema)}`
         : 'You must respond with valid JSON only, no additional text.';
 
-      const enhancedMessages = [
-        { role: 'system', content: systemPrompt },
-        ...messages,
-      ];
+      const enhancedMessages = [{ role: 'system', content: systemPrompt }, ...messages];
 
       const response = await this.getChatCompletion(enhancedMessages);
       return JSON.parse(response.content) as T;
