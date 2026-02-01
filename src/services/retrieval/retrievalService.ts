@@ -16,6 +16,14 @@ export interface RetrievalResult {
 }
 
 /**
+ * Escape OData filter values to prevent injection
+ */
+function escapeODataValue(value: string): string {
+  // Escape single quotes by doubling them (OData standard)
+  return value.replace(/'/g, "''");
+}
+
+/**
  * Retrieve relevant documents using hybrid search
  */
 export async function retrieveDocuments(options: RetrievalOptions): Promise<RetrievalResult> {
@@ -31,8 +39,8 @@ export async function retrieveDocuments(options: RetrievalOptions): Promise<Retr
     const embeddings = await openaiClient.getEmbeddings(query);
     const queryVector = embeddings[0];
 
-    // Build filter for customer-specific data
-    const filter = customerId ? `customerId eq '${customerId}'` : undefined;
+    // Build filter for customer-specific data with proper escaping
+    const filter = customerId ? `customerId eq '${escapeODataValue(customerId)}'` : undefined;
 
     // Perform hybrid search
     const results = await searchClient.hybridSearch({

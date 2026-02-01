@@ -10,7 +10,7 @@ resource redis 'Microsoft.Cache/redis@2023-08-01' = {
     sku: {
       name: sku
       family: sku == 'Premium' ? 'P' : 'C'
-      capacity: sku == 'Premium' ? 1 : 0
+      capacity: sku == 'Premium' ? 1 : 1 // C1 for Basic/Standard (1GB), P1 for Premium (6GB)
     }
     enableNonSslPort: false
     minimumTlsVersion: '1.2'

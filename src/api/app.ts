@@ -15,9 +15,9 @@ app.use(helmet());
 // CORS
 app.use(
   cors({
-    origin: config.nodeEnv === 'production' ? [] : '*',
+    origin: config.nodeEnv === 'production' ? process.env.ALLOWED_ORIGINS?.split(',') || [] : '*',
     methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
   })
 );
 

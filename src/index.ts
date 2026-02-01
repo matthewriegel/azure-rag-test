@@ -28,6 +28,14 @@ async function shutdown(signal: string): Promise<void> {
         logger.error('Error disconnecting Redis', { error });
       }
 
+      // Clean up tokenizer
+      try {
+        const { cleanup } = await import('./utils/tokenizer.js');
+        cleanup();
+      } catch (error) {
+        logger.error('Error cleaning up tokenizer', { error });
+      }
+
       process.exit(0);
     });
 
@@ -36,6 +44,10 @@ async function shutdown(signal: string): Promise<void> {
       logger.error('Forced shutdown after timeout');
       process.exit(1);
     }, 10000);
+  } else {
+    // Server was never started, exit immediately
+    logger.info('No server to close, exiting');
+    process.exit(0);
   }
 }
 

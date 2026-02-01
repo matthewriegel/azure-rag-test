@@ -110,6 +110,9 @@ export async function ingestCustomerData(options: IngestOptions): Promise<Ingest
 
     let totalChunks = 0;
 
+    // Collect all chunks first for batch embedding
+    const chunkBatch: Array<{ path: string; chunk: string; index: number }> = [];
+
     for (const { path, value } of flattenedData) {
       // Skip empty or very short values
       if (!value || value.length < 10) {
@@ -119,28 +122,42 @@ export async function ingestCustomerData(options: IngestOptions): Promise<Ingest
       // Chunk the content
       const chunks = chunkText(value, config.rag.chunkSize, config.rag.chunkOverlap);
 
-      // Generate embeddings for all chunks
-      const embeddings = await openaiClient.getEmbeddings(chunks);
-
-      // Create documents for indexing
+      // Collect chunks for batching
       for (let i = 0; i < chunks.length; i++) {
-        const chunkId = `${customerId}-${hashString(path)}-${i}`;
-        documents.push({
-          id: chunkId,
-          content: chunks[i],
-          contentVector: embeddings[i],
-          dataPath: path,
-          customerId,
-          chunkId,
-        });
-        totalChunks++;
+        chunkBatch.push({ path, chunk: chunks[i], index: i });
       }
     }
 
+    // Generate embeddings in batches (max 100 at a time to avoid rate limits)
+    const embeddingBatchSize = 100;
+    const allEmbeddings: number[][] = [];
+
+    for (let i = 0; i < chunkBatch.length; i += embeddingBatchSize) {
+      const batch = chunkBatch.slice(i, i + embeddingBatchSize);
+      const texts = batch.map((item) => item.chunk);
+      const embeddings = await openaiClient.getEmbeddings(texts);
+      allEmbeddings.push(...embeddings);
+    }
+
+    // Create documents for indexing
+    for (let i = 0; i < chunkBatch.length; i++) {
+      const { path, chunk, index } = chunkBatch[i];
+      const chunkId = `${customerId}-${hashString(path)}-${index}`;
+      documents.push({
+        id: chunkId,
+        content: chunk,
+        contentVector: allEmbeddings[i],
+        dataPath: path,
+        customerId,
+        chunkId,
+      });
+      totalChunks++;
+    }
+
     // Index documents in batches
-    const batchSize = 100;
-    for (let i = 0; i < documents.length; i += batchSize) {
-      const batch = documents.slice(i, i + batchSize);
+    const indexBatchSize = 100;
+    for (let i = 0; i < documents.length; i += indexBatchSize) {
+      const batch = documents.slice(i, i + indexBatchSize);
       await searchClient.indexDocuments(batch);
     }
 

@@ -32,6 +32,10 @@ const CONFIDENCE_WEIGHTS = {
  * Normalize score to 0..1 range
  */
 function normalizeScore(score: number, min: number = 0, max: number = 1): number {
+  // Handle edge case where min equals max
+  if (min === max) {
+    return score >= min ? 1 : 0;
+  }
   return Math.max(0, Math.min(1, (score - min) / (max - min)));
 }
 

@@ -29,7 +29,7 @@ router.post(
     // Apply PII redaction if enabled
     const sanitizedQuestion = featureFlags.piiRedaction ? redactPII(formQuestion) : formQuestion;
 
-    logger.info('Received form query', { customerId, questionLength: formQuestion.length });
+    logger.info('Received form query', { customerId, questionLength: sanitizedQuestion.length });
 
     const result = await processFormQuery({
       formQuestion: sanitizedQuestion,

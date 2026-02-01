@@ -5,6 +5,7 @@ import logger from '../../utils/logger.js';
 class RedisService {
   private client: RedisClientType | null = null;
   private isConnected = false;
+  private connectionPromise: Promise<void> | null = null;
 
   /**
    * Initialize Redis connection
@@ -13,6 +14,21 @@ class RedisService {
     if (this.isConnected) {
       return;
     }
+
+    // Prevent multiple concurrent connection attempts
+    if (this.connectionPromise) {
+      return this.connectionPromise;
+    }
+
+    this.connectionPromise = this._connect();
+    try {
+      await this.connectionPromise;
+    } finally {
+      this.connectionPromise = null;
+    }
+  }
+
+  private async _connect(): Promise<void> {
 
     try {
       const redisConfig: {
@@ -76,8 +92,14 @@ class RedisService {
       const value = await this.client!.get(key);
       return value ? (JSON.parse(value) as T) : null;
     } catch (error) {
-      logger.error('Error getting value from Redis', { error, key });
-      return null;
+      // Differentiate between parse errors and Redis errors
+      if (error instanceof SyntaxError) {
+        logger.error('Error parsing cached value from Redis', { error, key });
+        return null;
+      }
+      // Re-throw Redis connection/network errors
+      logger.error('Redis error while getting value', { error, key });
+      throw error;
     }
   }
 
@@ -115,7 +137,7 @@ class RedisService {
   }
 
   /**
-   * Delete keys matching a pattern
+   * Delete keys matching a pattern (using SCAN for production safety)
    */
   async deletePattern(pattern: string): Promise<void> {
     if (!this.client || !this.isConnected) {
@@ -123,7 +145,19 @@ class RedisService {
     }
 
     try {
-      const keys = await this.client!.keys(pattern);
+      const keys: string[] = [];
+      let cursor = 0;
+
+      // Use SCAN instead of KEYS to avoid blocking Redis
+      do {
+        const result = await this.client!.scan(cursor, {
+          MATCH: pattern,
+          COUNT: 100,
+        });
+        cursor = result.cursor;
+        keys.push(...result.keys);
+      } while (cursor !== 0);
+
       if (keys.length > 0) {
         await this.client!.del(keys);
         logger.info(`Deleted ${keys.length} keys matching pattern ${pattern}`);

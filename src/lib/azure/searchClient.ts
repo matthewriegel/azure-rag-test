@@ -66,42 +66,41 @@ class AzureSearchService {
    * Create search index with vector fields
    */
   private async createIndex(): Promise<void> {
-    const indexDefinition = {
+    const indexDefinition: SearchIndex = {
       name: this.indexName,
       fields: [
         {
           name: 'id',
-          type: 'Edm.String' as const,
+          type: 'Edm.String',
           key: true,
           filterable: true,
         },
         {
           name: 'content',
-          type: 'Edm.String' as const,
+          type: 'Edm.String',
           searchable: true,
-          analyzer: 'en.microsoft',
         },
         {
           name: 'contentVector',
-          type: 'Collection(Edm.Single)' as const,
+          type: 'Collection(Edm.Single)',
           searchable: true,
-          vectorSearchDimensions: 3072, // text-embedding-3-large
-          vectorSearchProfileName: 'default-vector-profile',
+          dimensions: 3072,
+          vectorSearchProfile: 'default-vector-profile',
         },
         {
           name: 'dataPath',
-          type: 'Edm.String' as const,
+          type: 'Edm.String',
           searchable: true,
           filterable: true,
         },
         {
           name: 'customerId',
-          type: 'Edm.String' as const,
+          type: 'Edm.String',
           filterable: true,
         },
         {
           name: 'chunkId',
-          type: 'Edm.String' as const,
+          type: 'Edm.String',
           filterable: true,
         },
       ],
@@ -109,7 +108,7 @@ class AzureSearchService {
         profiles: [
           {
             name: 'default-vector-profile',
-            algorithm: 'default-algorithm',
+            algorithmConfigurationName: 'default-algorithm',
           },
         ],
         algorithms: [
@@ -121,7 +120,7 @@ class AzureSearchService {
       },
     };
 
-    await this.indexClient.createIndex(indexDefinition as never);
+    await this.indexClient.createIndex(indexDefinition);
   }
 
   /**
@@ -194,8 +193,10 @@ class AzureSearchService {
    */
   async deleteByCustomerId(customerId: string): Promise<void> {
     try {
+      // Escape customer ID to prevent OData injection
+      const escapedCustomerId = customerId.replace(/'/g, "''");
       const searchResults = await this.searchClient.search('*', {
-        filter: `customerId eq '${customerId}'`,
+        filter: `customerId eq '${escapedCustomerId}'`,
         select: ['id'],
       });
 

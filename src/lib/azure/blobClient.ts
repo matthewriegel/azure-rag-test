@@ -86,8 +86,16 @@ class BlobStorageService {
    * Download blob as JSON
    */
   async downloadBlobAsJson<T>(blobName: string): Promise<T> {
-    const content = await this.downloadBlob(blobName);
-    return JSON.parse(content) as T;
+    try {
+      const content = await this.downloadBlob(blobName);
+      return JSON.parse(content) as T;
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        logger.error('Blob contains invalid JSON', { blobName, error });
+        throw new Error(`Blob ${blobName} contains invalid JSON`);
+      }
+      throw error;
+    }
   }
 
   /**

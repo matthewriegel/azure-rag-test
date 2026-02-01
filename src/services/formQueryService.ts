@@ -54,8 +54,18 @@ export async function processFormQuery(request: FormQueryRequest): Promise<FormQ
 
     // Step 2: Ensure customer data is indexed (if customerId provided)
     if (customerId) {
-      // This will check cache or fetch + index from blob storage
-      await ingestCustomerData({ customerId, forceReindex: false });
+      // Check if customer data is already indexed by trying a test search
+      const redisClient = getRedisClient();
+      const indexedCacheKey = `customer:${customerId}:indexed`;
+      
+      const isIndexed = await redisClient.exists(indexedCacheKey);
+      
+      if (!isIndexed) {
+        // This will check cache or fetch + index from blob storage
+        await ingestCustomerData({ customerId, forceReindex: false });
+        // Mark as indexed (cache for 24 hours)
+        await redisClient.set(indexedCacheKey, { indexed: true }, 86400);
+      }
     }
 
     // Step 3: Execute hybrid vector search

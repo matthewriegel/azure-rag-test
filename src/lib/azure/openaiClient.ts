@@ -28,6 +28,9 @@ class AzureOpenAIService {
       return response.data.map((item) => item.embedding);
     } catch (error) {
       logger.error('Error generating embeddings', { error });
+      if (error instanceof Error) {
+        throw error;
+      }
       throw new Error('Failed to generate embeddings');
     }
   }
@@ -63,6 +66,9 @@ class AzureOpenAIService {
       };
     } catch (error) {
       logger.error('Error generating chat completion', { error });
+      if (error instanceof Error) {
+        throw error;
+      }
       throw new Error('Failed to generate chat completion');
     }
   }
@@ -82,9 +88,21 @@ class AzureOpenAIService {
       const enhancedMessages = [{ role: 'system', content: systemPrompt }, ...messages];
 
       const response = await this.getChatCompletion(enhancedMessages);
-      return JSON.parse(response.content) as T;
+      
+      try {
+        return JSON.parse(response.content) as T;
+      } catch (parseError) {
+        logger.error('Failed to parse LLM response as JSON', {
+          parseError,
+          responseContent: response.content.substring(0, 500),
+        });
+        throw new Error(`LLM returned invalid JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
+      }
     } catch (error) {
       logger.error('Error generating structured completion', { error });
+      if (error instanceof Error) {
+        throw error;
+      }
       throw new Error('Failed to generate structured completion');
     }
   }

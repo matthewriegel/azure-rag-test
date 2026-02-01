@@ -15,10 +15,10 @@ resource openai 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   }
 }
 
-// Deploy chat model
+// Deploy chat model (GPT-4 Turbo)
 resource chatDeployment 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = {
   parent: openai
-  name: 'gpt-41-mini'
+  name: 'gpt-4'
   sku: {
     name: 'Standard'
     capacity: 10
